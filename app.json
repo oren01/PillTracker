@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Pill Tracker",
+    "slug": "pill-tracker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pilltracker"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.pilltracker"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
