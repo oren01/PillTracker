@@ -44,7 +44,7 @@ const PillsScreen = () => {
         return {
           ...pill,
           activePacks,
-          totalRemaining,
+          totalRemaining: pill.currentPackAmount || totalRemaining,
         };
       });
 

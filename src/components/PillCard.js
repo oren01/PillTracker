@@ -38,7 +38,8 @@ const PillCard = ({pill, onTakePill, currentTimeOfDay}) => {
   };
 
   const handleTakePill = (timeOfDay) => {
-    if (pill.totalRemaining <= 0) {
+    const currentAmount = pill.currentPackAmount || pill.totalRemaining;
+    if (currentAmount <= 0) {
       Alert.alert('No pills available', 'Please start a new pack');
       return;
     }
@@ -53,9 +54,10 @@ const PillCard = ({pill, onTakePill, currentTimeOfDay}) => {
   };
 
   const getStockStatus = () => {
-    if (pill.totalRemaining === 0) return {status: 'empty', color: '#f44336'};
-    if (pill.totalRemaining <= 5) return {status: 'low', color: '#ff9800'};
-    if (pill.totalRemaining <= 10) return {status: 'medium', color: '#ffc107'};
+    const currentAmount = pill.currentPackAmount || pill.totalRemaining;
+    if (currentAmount === 0) return {status: 'empty', color: '#f44336'};
+    if (currentAmount <= 5) return {status: 'low', color: '#ff9800'};
+    if (currentAmount <= 10) return {status: 'medium', color: '#ffc107'};
     return {status: 'good', color: '#4caf50'};
   };
 
@@ -74,7 +76,8 @@ const PillCard = ({pill, onTakePill, currentTimeOfDay}) => {
           </View>
         </View>
         <View style={styles.stockInfo}>
-          <Text style={styles.stockText}>{pill.totalRemaining} left</Text>
+          <Text style={styles.stockText}>{pill.currentPackAmount || pill.totalRemaining} left</Text>
+          <Text style={styles.packSizeText}>Pack: {pill.defaultPackSize || 30}</Text>
           <View style={[styles.stockIndicator, {backgroundColor: stockStatus.color}]} />
         </View>
       </View>
@@ -89,7 +92,7 @@ const PillCard = ({pill, onTakePill, currentTimeOfDay}) => {
               timeOfDay === currentTimeOfDay && styles.timeButtonCurrent,
             ]}
             onPress={() => handleTakePill(timeOfDay)}
-            disabled={isTakenForTime(timeOfDay) || pill.totalRemaining <= 0}>
+            disabled={isTakenForTime(timeOfDay) || (pill.currentPackAmount || pill.totalRemaining) <= 0}>
             <Ionicons
               name={getTimeOfDayIcon(timeOfDay)}
               size={20}
@@ -201,6 +204,11 @@ const styles = StyleSheet.create({
   stockText: {
     fontSize: 12,
     color: '#666',
+    marginBottom: 2,
+  },
+  packSizeText: {
+    fontSize: 10,
+    color: '#999',
     marginBottom: 4,
   },
   stockIndicator: {

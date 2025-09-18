@@ -45,7 +45,7 @@ const TodayScreen = () => {
           ...pill,
           activePacks,
           todayIntakes,
-          totalRemaining: activePacks.reduce((sum, pack) => sum + pack.remainingPills, 0),
+          totalRemaining: pill.currentPackAmount || activePacks.reduce((sum, pack) => sum + pack.remainingPills, 0),
         };
       });
 
@@ -166,7 +166,7 @@ const TodayScreen = () => {
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Low Stock:</Text>
           <Text style={styles.summaryValue}>
-            {todayPills.filter(p => p.totalRemaining <= 5).length}
+            {todayPills.filter(p => (p.currentPackAmount || p.totalRemaining) <= 5).length}
           </Text>
         </View>
       </View>

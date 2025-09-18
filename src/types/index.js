@@ -25,6 +25,8 @@ export const Pill = {
   instructions: '',
   color: '#2196F3',
   shape: 'round',
+  defaultPackSize: 30,
+  currentPackAmount: 30,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };

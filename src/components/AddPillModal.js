@@ -22,6 +22,8 @@ const AddPillModal = ({visible, onClose, onAdd, pill = null, isEdit = false}) =>
     instructions: '',
     color: '#2196F3',
     shape: 'round',
+    defaultPackSize: 30,
+    currentPackAmount: 30,
   });
 
   const [errors, setErrors] = useState({});
@@ -38,6 +40,8 @@ const AddPillModal = ({visible, onClose, onAdd, pill = null, isEdit = false}) =>
         instructions: pill.instructions || '',
         color: pill.color || '#2196F3',
         shape: pill.shape || 'round',
+        defaultPackSize: pill.defaultPackSize || 30,
+        currentPackAmount: pill.currentPackAmount || 30,
       });
     } else {
       // Reset form data for adding new pill
@@ -50,6 +54,8 @@ const AddPillModal = ({visible, onClose, onAdd, pill = null, isEdit = false}) =>
         instructions: '',
         color: '#2196F3',
         shape: 'round',
+        defaultPackSize: 30,
+        currentPackAmount: 30,
       });
     }
     setErrors({});
@@ -79,6 +85,18 @@ const AddPillModal = ({visible, onClose, onAdd, pill = null, isEdit = false}) =>
 
     if (formData.timesOfDay.length === 0) {
       newErrors.timesOfDay = 'At least one time of day is required';
+    }
+
+    if (formData.defaultPackSize < 1) {
+      newErrors.defaultPackSize = 'Default pack size must be at least 1';
+    }
+
+    if (formData.currentPackAmount < 0) {
+      newErrors.currentPackAmount = 'Current pack amount cannot be negative';
+    }
+
+    if (formData.currentPackAmount > formData.defaultPackSize) {
+      newErrors.currentPackAmount = 'Current pack amount cannot exceed default pack size';
     }
 
     setErrors(newErrors);
@@ -249,6 +267,36 @@ const AddPillModal = ({visible, onClose, onAdd, pill = null, isEdit = false}) =>
                 ))}
               </View>
               {errors.timesOfDay && <Text style={styles.errorText}>{errors.timesOfDay}</Text>}
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Pack Information</Text>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Default Pack Size *</Text>
+              <TextInput
+                style={[styles.input, errors.defaultPackSize && styles.inputError]}
+                value={formData.defaultPackSize.toString()}
+                onChangeText={text => setFormData(prev => ({...prev, defaultPackSize: parseInt(text) || 0}))}
+                keyboardType="numeric"
+                placeholder="e.g., 30"
+                placeholderTextColor="#999"
+              />
+              {errors.defaultPackSize && <Text style={styles.errorText}>{errors.defaultPackSize}</Text>}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Current Pack Amount *</Text>
+              <TextInput
+                style={[styles.input, errors.currentPackAmount && styles.inputError]}
+                value={formData.currentPackAmount.toString()}
+                onChangeText={text => setFormData(prev => ({...prev, currentPackAmount: parseInt(text) || 0}))}
+                keyboardType="numeric"
+                placeholder="e.g., 30"
+                placeholderTextColor="#999"
+              />
+              {errors.currentPackAmount && <Text style={styles.errorText}>{errors.currentPackAmount}</Text>}
             </View>
           </View>
 
