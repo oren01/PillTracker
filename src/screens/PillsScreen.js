@@ -18,6 +18,7 @@ const PillsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showPackModal, setShowPackModal] = useState(false);
   const [selectedPill, setSelectedPill] = useState(null);
 
@@ -74,10 +75,12 @@ const PillsScreen = () => {
     }
   };
 
-  const handleEditPill = async (pillId, updates) => {
+  const handleUpdatePill = async (pillId, updates) => {
     try {
       await StorageService.updatePill(pillId, updates);
       await loadPills();
+      setShowEditModal(false);
+      setSelectedPill(null);
       Alert.alert('Success', 'Pill updated successfully');
     } catch (error) {
       console.error('Error updating pill:', error);
@@ -107,6 +110,11 @@ const PillsScreen = () => {
         },
       ]
     );
+  };
+
+  const handleEditPill = (pill) => {
+    setSelectedPill(pill);
+    setShowEditModal(true);
   };
 
   const handleStartNewPack = (pill) => {
@@ -153,6 +161,11 @@ const PillsScreen = () => {
             </View>
           </View>
           <View style={styles.pillActions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handleEditPill(pill)}>
+              <MaterialIcons name="edit" size={20} color="#FF9800" />
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => handleStartNewPack(pill)}>
@@ -222,6 +235,17 @@ const PillsScreen = () => {
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAdd={handleAddPill}
+      />
+
+      <AddPillModal
+        visible={showEditModal}
+        pill={selectedPill}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedPill(null);
+        }}
+        onAdd={handleUpdatePill}
+        isEdit={true}
       />
 
       <PillPackModal

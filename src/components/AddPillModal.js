@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
 import {Ionicons} from '@expo/vector-icons';
 import {PillType, TimeOfDay} from '../types';
 
-const AddPillModal = ({visible, onClose, onAdd}) => {
+const AddPillModal = ({visible, onClose, onAdd, pill = null, isEdit = false}) => {
   const [formData, setFormData] = useState({
     name: '',
     dosage: '',
@@ -25,6 +25,35 @@ const AddPillModal = ({visible, onClose, onAdd}) => {
   });
 
   const [errors, setErrors] = useState({});
+
+  // Initialize form data when pill prop changes (for editing)
+  useEffect(() => {
+    if (isEdit && pill) {
+      setFormData({
+        name: pill.name || '',
+        dosage: pill.dosage || '',
+        type: pill.type || PillType.TABLET,
+        timesPerDay: pill.timesPerDay || 1,
+        timesOfDay: pill.timesOfDay || [TimeOfDay.MORNING],
+        instructions: pill.instructions || '',
+        color: pill.color || '#2196F3',
+        shape: pill.shape || 'round',
+      });
+    } else {
+      // Reset form data for adding new pill
+      setFormData({
+        name: '',
+        dosage: '',
+        type: PillType.TABLET,
+        timesPerDay: 1,
+        timesOfDay: [TimeOfDay.MORNING],
+        instructions: '',
+        color: '#2196F3',
+        shape: 'round',
+      });
+    }
+    setErrors({});
+  }, [isEdit, pill]);
 
   const colors = [
     '#2196F3', '#4CAF50', '#FF9800', '#F44336', '#9C27B0',
@@ -58,18 +87,11 @@ const AddPillModal = ({visible, onClose, onAdd}) => {
 
   const handleSubmit = () => {
     if (validateForm()) {
-      onAdd(formData);
-      setFormData({
-        name: '',
-        dosage: '',
-        type: PillType.TABLET,
-        timesPerDay: 1,
-        timesOfDay: [TimeOfDay.MORNING],
-        instructions: '',
-        color: '#2196F3',
-        shape: 'round',
-      });
-      setErrors({});
+      if (isEdit && pill) {
+        onAdd(pill.id, formData);
+      } else {
+        onAdd(formData);
+      }
     }
   };
 
@@ -126,9 +148,9 @@ const AddPillModal = ({visible, onClose, onAdd}) => {
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Ionicons name="close" size={24} color="#666" />
           </TouchableOpacity>
-          <Text style={styles.title}>Add New Pill</Text>
+          <Text style={styles.title}>{isEdit ? 'Edit Pill' : 'Add New Pill'}</Text>
           <TouchableOpacity onPress={handleSubmit} style={styles.saveButton}>
-            <Text style={styles.saveButtonText}>Save</Text>
+            <Text style={styles.saveButtonText}>{isEdit ? 'Update' : 'Save'}</Text>
           </TouchableOpacity>
         </View>
 
