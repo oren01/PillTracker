@@ -7,6 +7,7 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import StorageService from '../services/StorageService';
 import {TimeOfDay} from '../types';
@@ -23,6 +24,13 @@ const HistoryScreen = () => {
   useEffect(() => {
     loadHistory();
   }, [selectedPeriod]);
+
+  // Refresh data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadHistory();
+    }, [selectedPeriod])
+  );
 
   const loadHistory = async () => {
     try {

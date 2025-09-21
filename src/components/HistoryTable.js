@@ -50,6 +50,16 @@ const HistoryTable = ({ pills, intakes, packs, selectedPeriod }) => {
 
   // Get remaining pills for a pill on a specific date
   const getRemainingPillsForDate = (pillId, date) => {
+    const pill = pills.find(p => p.id === pillId);
+    if (!pill) return 0;
+    
+    // For today's date, use the current pack amount directly
+    const today = new Date().toISOString().split('T')[0];
+    if (date === today) {
+      return pill.currentPackAmount || 0;
+    }
+    
+    // For past dates, calculate based on intakes
     const activePack = packs.find(pack => 
       pack.pillId === pillId && 
       pack.isActive &&
