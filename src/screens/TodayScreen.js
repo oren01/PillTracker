@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import StorageService from '../services/StorageService';
 import {TimeOfDay} from '../types';
 import PillCard from '../components/PillCard';
@@ -23,6 +24,13 @@ const TodayScreen = () => {
   useEffect(() => {
     loadTodayPills();
   }, []);
+
+  // Refresh today's pills data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadTodayPills();
+    }, [])
+  );
 
   const loadTodayPills = async () => {
     try {

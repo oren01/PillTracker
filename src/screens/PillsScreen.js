@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import StorageService from '../services/StorageService';
 import AddPillModal from '../components/AddPillModal';
 
@@ -23,6 +24,13 @@ const PillsScreen = () => {
   useEffect(() => {
     loadPills();
   }, []);
+
+  // Refresh pills data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadPills();
+    }, [])
+  );
 
   const loadPills = async () => {
     try {
