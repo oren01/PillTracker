@@ -106,26 +106,13 @@ const PillsScreen = () => {
   };
 
   const handleResetPack = async (pill) => {
-    Alert.alert(
-      'Reset Pack',
-      `Reset "${pill.name}" pack to ${pill.defaultPackSize} pills?`,
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {
-          text: 'Reset',
-          onPress: async () => {
-            try {
-              await StorageService.updatePillCurrentPackAmount(pill.id, pill.defaultPackSize);
-              await loadPills();
-              Alert.alert('Success', 'Pack reset successfully');
-            } catch (error) {
-              console.error('Error resetting pack:', error);
-              Alert.alert('Error', 'Failed to reset pack');
-            }
-          },
-        },
-      ]
-    );
+    try {
+      await StorageService.updatePillCurrentPackAmount(pill.id, pill.defaultPackSize);
+      await loadPills();
+    } catch (error) {
+      console.error('Error resetting pack:', error);
+      Alert.alert('Error', 'Failed to reset pack');
+    }
   };
 
   const getStockStatus = (currentPackAmount) => {
