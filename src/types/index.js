@@ -31,21 +31,9 @@ export const Pill = {
   updatedAt: new Date().toISOString(),
 };
 
-export const PillPack = {
-  id: '',
-  pillId: '',
-  packSize: 0,
-  remainingPills: 0,
-  startDate: new Date().toISOString(),
-  expiryDate: null,
-  isActive: true,
-  createdAt: new Date().toISOString(),
-};
-
 export const PillIntake = {
   id: '',
   pillId: '',
-  packId: '',
   takenAt: new Date().toISOString(),
   timeOfDay: TimeOfDay.MORNING,
   notes: '',

@@ -11,7 +11,6 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import StorageService from '../services/StorageService';
 import AddPillModal from '../components/AddPillModal';
-import PillPackModal from '../components/PillPackModal';
 
 const PillsScreen = () => {
   const [pills, setPills] = useState([]);
@@ -19,7 +18,6 @@ const PillsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showPackModal, setShowPackModal] = useState(false);
   const [selectedPill, setSelectedPill] = useState(null);
 
   useEffect(() => {
@@ -30,25 +28,7 @@ const PillsScreen = () => {
     try {
       setLoading(true);
       const pillsData = await StorageService.getPills();
-      const packsData = await StorageService.getPillPacks();
-      
-      // Add pack information to each pill
-      const pillsWithPacks = pillsData.map(pill => {
-        const activePacks = packsData.filter(
-          pack => pack.pillId === pill.id && pack.isActive
-        );
-        const totalRemaining = activePacks.reduce(
-          (sum, pack) => sum + pack.remainingPills, 0
-        );
-        
-        return {
-          ...pill,
-          activePacks,
-          totalRemaining: pill.currentPackAmount || totalRemaining,
-        };
-      });
-
-      setPills(pillsWithPacks);
+      setPills(pillsData);
     } catch (error) {
       console.error('Error loading pills:', error);
       Alert.alert('Error', 'Failed to load pills');
@@ -91,7 +71,7 @@ const PillsScreen = () => {
   const handleDeletePill = (pill) => {
     Alert.alert(
       'Delete Pill',
-      `Are you sure you want to delete "${pill.name}"? This will also delete all associated packs and intake records.`,
+      `Are you sure you want to delete "${pill.name}"? This will also delete all associated intake records.`,
       [
         {text: 'Cancel', style: 'cancel'},
         {
@@ -117,33 +97,38 @@ const PillsScreen = () => {
     setShowEditModal(true);
   };
 
-  const handleStartNewPack = (pill) => {
-    setSelectedPill(pill);
-    setShowPackModal(true);
+  const handleResetPack = async (pill) => {
+    Alert.alert(
+      'Reset Pack',
+      `Reset "${pill.name}" pack to ${pill.defaultPackSize} pills?`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Reset',
+          onPress: async () => {
+            try {
+              await StorageService.updatePillCurrentPackAmount(pill.id, pill.defaultPackSize);
+              await loadPills();
+              Alert.alert('Success', 'Pack reset successfully');
+            } catch (error) {
+              console.error('Error resetting pack:', error);
+              Alert.alert('Error', 'Failed to reset pack');
+            }
+          },
+        },
+      ]
+    );
   };
 
-  const handleAddPack = async (packData) => {
-    try {
-      await StorageService.addPillPack(packData);
-      await loadPills();
-      setShowPackModal(false);
-      setSelectedPill(null);
-      Alert.alert('Success', 'New pack started successfully');
-    } catch (error) {
-      console.error('Error adding pack:', error);
-      Alert.alert('Error', 'Failed to start new pack');
-    }
-  };
-
-  const getStockStatus = (remaining) => {
-    if (remaining === 0) return {status: 'Empty', color: '#f44336'};
-    if (remaining <= 5) return {status: 'Low', color: '#ff9800'};
-    if (remaining <= 10) return {status: 'Medium', color: '#ffc107'};
+  const getStockStatus = (currentPackAmount) => {
+    if (currentPackAmount === 0) return {status: 'Empty', color: '#f44336'};
+    if (currentPackAmount <= 5) return {status: 'Low', color: '#ff9800'};
+    if (currentPackAmount <= 10) return {status: 'Medium', color: '#ffc107'};
     return {status: 'Good', color: '#4caf50'};
   };
 
   const renderPillItem = ({item: pill}) => {
-    const stockStatus = getStockStatus(pill.totalRemaining);
+    const stockStatus = getStockStatus(pill.currentPackAmount);
     
     return (
       <View style={styles.pillItem}>
@@ -168,8 +153,8 @@ const PillsScreen = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => handleStartNewPack(pill)}>
-              <MaterialIcons name="add-box" size={20} color="#2196F3" />
+              onPress={() => handleResetPack(pill)}>
+              <MaterialIcons name="refresh" size={20} color="#2196F3" />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
@@ -183,12 +168,12 @@ const PillsScreen = () => {
           <View style={styles.stockInfo}>
             <Text style={styles.stockLabel}>Stock:</Text>
             <Text style={[styles.stockValue, {color: stockStatus.color}]}>
-              {pill.totalRemaining} pills ({stockStatus.status})
+              {pill.currentPackAmount} pills ({stockStatus.status})
             </Text>
           </View>
           <View style={styles.packInfo}>
             <Text style={styles.packLabel}>
-              {pill.activePacks.length} active pack{pill.activePacks.length !== 1 ? 's' : ''}
+              Pack size: {pill.defaultPackSize}
             </Text>
           </View>
         </View>
@@ -248,15 +233,6 @@ const PillsScreen = () => {
         isEdit={true}
       />
 
-      <PillPackModal
-        visible={showPackModal}
-        pill={selectedPill}
-        onClose={() => {
-          setShowPackModal(false);
-          setSelectedPill(null);
-        }}
-        onAdd={handleAddPack}
-      />
     </View>
   );
 };

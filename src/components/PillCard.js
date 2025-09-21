@@ -38,9 +38,8 @@ const PillCard = ({pill, onTakePill, currentTimeOfDay}) => {
   };
 
   const handleTakePill = (timeOfDay) => {
-    const currentAmount = pill.currentPackAmount || pill.totalRemaining;
-    if (currentAmount <= 0) {
-      Alert.alert('No pills available', 'Please start a new pack');
+    if (pill.currentPackAmount <= 0) {
+      Alert.alert('No pills available', 'Please reset your pack');
       return;
     }
 
@@ -54,10 +53,9 @@ const PillCard = ({pill, onTakePill, currentTimeOfDay}) => {
   };
 
   const getStockStatus = () => {
-    const currentAmount = pill.currentPackAmount || pill.totalRemaining;
-    if (currentAmount === 0) return {status: 'empty', color: '#f44336'};
-    if (currentAmount <= 5) return {status: 'low', color: '#ff9800'};
-    if (currentAmount <= 10) return {status: 'medium', color: '#ffc107'};
+    if (pill.currentPackAmount === 0) return {status: 'empty', color: '#f44336'};
+    if (pill.currentPackAmount <= 5) return {status: 'low', color: '#ff9800'};
+    if (pill.currentPackAmount <= 10) return {status: 'medium', color: '#ffc107'};
     return {status: 'good', color: '#4caf50'};
   };
 
@@ -76,8 +74,8 @@ const PillCard = ({pill, onTakePill, currentTimeOfDay}) => {
           </View>
         </View>
         <View style={styles.stockInfo}>
-          <Text style={styles.stockText}>{pill.currentPackAmount || pill.totalRemaining} left</Text>
-          <Text style={styles.packSizeText}>Pack: {pill.defaultPackSize || 30}</Text>
+          <Text style={styles.stockText}>{pill.currentPackAmount} left</Text>
+          <Text style={styles.packSizeText}>Pack: {pill.defaultPackSize}</Text>
           <View style={[styles.stockIndicator, {backgroundColor: stockStatus.color}]} />
         </View>
       </View>
@@ -92,7 +90,7 @@ const PillCard = ({pill, onTakePill, currentTimeOfDay}) => {
               timeOfDay === currentTimeOfDay && styles.timeButtonCurrent,
             ]}
             onPress={() => handleTakePill(timeOfDay)}
-            disabled={isTakenForTime(timeOfDay) || (pill.currentPackAmount || pill.totalRemaining) <= 0}>
+            disabled={isTakenForTime(timeOfDay) || pill.currentPackAmount <= 0}>
             <Ionicons
               name={getTimeOfDayIcon(timeOfDay)}
               size={20}

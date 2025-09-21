@@ -28,14 +28,10 @@ const TodayScreen = () => {
     try {
       setLoading(true);
       const pills = await StorageService.getPills();
-      const packs = await StorageService.getPillPacks();
       const intakes = await StorageService.getPillIntakes();
       
-      // Get active packs for each pill
-      const pillsWithPacks = pills.map(pill => {
-        const activePacks = packs.filter(
-          pack => pack.pillId === pill.id && pack.isActive
-        );
+      // Add today's intakes to each pill
+      const pillsWithIntakes = pills.map(pill => {
         const todayIntakes = intakes.filter(
           intake => intake.pillId === pill.id && 
           intake.takenAt.startsWith(today)
@@ -43,13 +39,11 @@ const TodayScreen = () => {
         
         return {
           ...pill,
-          activePacks,
           todayIntakes,
-          totalRemaining: pill.currentPackAmount || activePacks.reduce((sum, pack) => sum + pack.remainingPills, 0),
         };
       });
 
-      setTodayPills(pillsWithPacks);
+      setTodayPills(pillsWithIntakes);
     } catch (error) {
       console.error('Error loading today pills:', error);
       Alert.alert('Error', 'Failed to load pills');
@@ -67,27 +61,22 @@ const TodayScreen = () => {
   const markPillTaken = async (pillId, timeOfDay) => {
     try {
       const pills = await StorageService.getPills();
-      const packs = await StorageService.getPillPacks();
       const pill = pills.find(p => p.id === pillId);
-      const activePack = packs.find(p => p.pillId === pillId && p.isActive);
 
-      if (!activePack || activePack.remainingPills <= 0) {
-        Alert.alert('No pills available', 'Please start a new pack or check your inventory');
+      if (!pill || pill.currentPackAmount <= 0) {
+        Alert.alert('No pills available', 'Please reset your pack or check your inventory');
         return;
       }
 
       // Record the intake
       await StorageService.addPillIntake({
         pillId,
-        packId: activePack.id,
         takenAt: new Date().toISOString(),
         timeOfDay,
       });
 
-      // Reduce remaining pills
-      await StorageService.updatePillPack(activePack.id, {
-        remainingPills: activePack.remainingPills - 1,
-      });
+      // Reduce current pack amount
+      await StorageService.updatePillCurrentPackAmount(pillId, pill.currentPackAmount - 1);
 
       // Reload data
       await loadTodayPills();
@@ -166,7 +155,7 @@ const TodayScreen = () => {
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Low Stock:</Text>
           <Text style={styles.summaryValue}>
-            {todayPills.filter(p => (p.currentPackAmount || p.totalRemaining) <= 5).length}
+            {todayPills.filter(p => p.currentPackAmount <= 5).length}
           </Text>
         </View>
       </View>

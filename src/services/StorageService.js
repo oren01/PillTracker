@@ -2,9 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEYS = {
   PILLS: 'pills',
-  PILL_PACKS: 'pillPacks',
   PILL_INTAKES: 'pillIntakes',
   DAILY_SCHEDULES: 'dailySchedules',
+  PILL_PACKS: 'pillPacks',
 };
 
 class StorageService {
@@ -81,55 +81,10 @@ class StorageService {
     const filteredPills = pills.filter(p => p.id !== pillId);
     await this.savePills(filteredPills);
     
-    // Also remove associated packs and intakes
-    await this.deletePillPacks(pillId);
+    // Also remove associated intakes
     await this.deletePillIntakes(pillId);
   }
 
-  // Pill packs management
-  async savePillPacks(packs) {
-    await this.setItem(STORAGE_KEYS.PILL_PACKS, packs);
-  }
-
-  async getPillPacks() {
-    const packs = await this.getItem(STORAGE_KEYS.PILL_PACKS);
-    return packs || [];
-  }
-
-  async addPillPack(pack) {
-    const packs = await this.getPillPacks();
-    const newPack = {
-      ...pack,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    };
-    packs.push(newPack);
-    await this.savePillPacks(packs);
-    return newPack;
-  }
-
-  async updatePillPack(packId, updates) {
-    const packs = await this.getPillPacks();
-    const index = packs.findIndex(p => p.id === packId);
-    if (index !== -1) {
-      packs[index] = {...packs[index], ...updates};
-      await this.savePillPacks(packs);
-      return packs[index];
-    }
-    throw new Error('Pack not found');
-  }
-
-  async deletePillPack(packId) {
-    const packs = await this.getPillPacks();
-    const filteredPacks = packs.filter(p => p.id !== packId);
-    await this.savePillPacks(filteredPacks);
-  }
-
-  async deletePillPacks(pillId) {
-    const packs = await this.getPillPacks();
-    const filteredPacks = packs.filter(p => p.pillId !== pillId);
-    await this.savePillPacks(filteredPacks);
-  }
 
   // Pill intakes management
   async savePillIntakes(intakes) {
@@ -153,10 +108,74 @@ class StorageService {
     return newIntake;
   }
 
+  async updatePillCurrentPackAmount(pillId, newAmount) {
+    const pills = await this.getPills();
+    const index = pills.findIndex(p => p.id === pillId);
+    if (index !== -1) {
+      pills[index] = {
+        ...pills[index],
+        currentPackAmount: newAmount,
+        updatedAt: new Date().toISOString(),
+      };
+      await this.savePills(pills);
+      return pills[index];
+    }
+    throw new Error('Pill not found');
+  }
+
   async deletePillIntakes(pillId) {
     const intakes = await this.getPillIntakes();
     const filteredIntakes = intakes.filter(i => i.pillId !== pillId);
     await this.savePillIntakes(filteredIntakes);
+  }
+
+  // Pill packs management
+  async savePillPacks(packs) {
+    await this.setItem(STORAGE_KEYS.PILL_PACKS, packs);
+  }
+
+  async getPillPacks() {
+    const packs = await this.getItem(STORAGE_KEYS.PILL_PACKS);
+    return packs || [];
+  }
+
+  async addPillPack(pack) {
+    const packs = await this.getPillPacks();
+    const newPack = {
+      ...pack,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    packs.push(newPack);
+    await this.savePillPacks(packs);
+    return newPack;
+  }
+
+  async updatePillPack(packId, updates) {
+    const packs = await this.getPillPacks();
+    const index = packs.findIndex(p => p.id === packId);
+    if (index !== -1) {
+      packs[index] = {
+        ...packs[index],
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+      await this.savePillPacks(packs);
+      return packs[index];
+    }
+    throw new Error('Pill pack not found');
+  }
+
+  async deletePillPack(packId) {
+    const packs = await this.getPillPacks();
+    const filteredPacks = packs.filter(p => p.id !== packId);
+    await this.savePillPacks(filteredPacks);
+  }
+
+  async getActivePillPack(pillId) {
+    const packs = await this.getPillPacks();
+    return packs.find(pack => pack.pillId === pillId && pack.isActive) || null;
   }
 
   // Daily schedules management
@@ -189,18 +208,18 @@ class StorageService {
   async clearAllData() {
     await Promise.all([
       this.removeItem(STORAGE_KEYS.PILLS),
-      this.removeItem(STORAGE_KEYS.PILL_PACKS),
       this.removeItem(STORAGE_KEYS.PILL_INTAKES),
       this.removeItem(STORAGE_KEYS.DAILY_SCHEDULES),
+      this.removeItem(STORAGE_KEYS.PILL_PACKS),
     ]);
   }
 
   async exportData() {
     const data = {
       pills: await this.getPills(),
-      pillPacks: await this.getPillPacks(),
       pillIntakes: await this.getPillIntakes(),
       dailySchedules: await this.getDailySchedules(),
+      pillPacks: await this.getPillPacks(),
       exportDate: new Date().toISOString(),
     };
     return data;
@@ -208,9 +227,9 @@ class StorageService {
 
   async importData(data) {
     if (data.pills) await this.savePills(data.pills);
-    if (data.pillPacks) await this.savePillPacks(data.pillPacks);
     if (data.pillIntakes) await this.savePillIntakes(data.pillIntakes);
     if (data.dailySchedules) await this.saveDailySchedules(data.dailySchedules);
+    if (data.pillPacks) await this.savePillPacks(data.pillPacks);
   }
 }
 
