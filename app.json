@@ -23,7 +23,8 @@
       "package": "com.pilltracker"
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "baseUrl": "/PillTracker"
     }
   }
 }

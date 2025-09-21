@@ -35,6 +35,8 @@ jobs:
       
     - name: Build web app
       run: npx expo export --platform web
+      env:
+        EXPO_PUBLIC_BASE_URL: /PillTracker
       
     - name: Setup Pages
       uses: actions/configure-pages@v4
